@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model agrega {
+  fk_colecao_nome_colecao String   @db.VarChar
+  fk_colecao_email        String   @db.VarChar
+  fk_exemplar_id          Int
+  colecao                 colecao  @relation(fields: [fk_colecao_nome_colecao, fk_colecao_email], references: [nome_colecao, fk_colecionador_email], map: "fk_agrega_1")
+  exemplar                exemplar @relation(fields: [fk_exemplar_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_agrega_2")
+
+  @@id([fk_colecao_nome_colecao, fk_colecao_email, fk_exemplar_id])
+}
+
+model capitulo {
+  fk_tankobon_numero       String   @db.VarChar
+  fk_tankobon_data_lanc    DateTime @db.Date
+  fk_tankobon_nome_intern  String   @db.VarChar
+  fk_tankobon_ciclo_de_num Int      @db.SmallInt
+  num_cap                  Int
+  tankobon                 tankobon @relation(fields: [fk_tankobon_numero, fk_tankobon_data_lanc, fk_tankobon_nome_intern, fk_tankobon_ciclo_de_num], references: [fk_edicao_numero, fk_edicao_data_lanc, fk_edicao_nome_intern, fk_edicao_ciclo_de_num], onDelete: Cascade, onUpdate: Restrict, map: "fk_capitulo_2")
+
+  @@id([fk_tankobon_numero, fk_tankobon_data_lanc, fk_tankobon_ciclo_de_num, fk_tankobon_nome_intern, num_cap])
+}
+
+model colecao {
+  nome_colecao          String       @db.VarChar
+  fk_colecionador_email String       @db.VarChar
+  colecionador          colecionador @relation(fields: [fk_colecionador_email], references: [email], onDelete: Cascade, map: "fk_colecao_2")
+  agrega                agrega[]
+
+  @@id([nome_colecao, fk_colecionador_email])
+}
+
+model colecionador {
+  username String?   @db.VarChar
+  email    String    @id @db.VarChar
+  senha    String?   @db.VarChar
+  colecao  colecao[]
+}
+
+model contribui {
+  fk_contribuidor_nome      String       @db.VarChar
+  fk_contribuidor_data_nasc DateTime     @db.Date
+  fk_serie_nome_intern      String       @db.VarChar
+  fk_serie_ciclo_de_num     Int          @db.SmallInt
+  funcao                    String?      @db.VarChar
+  contribuidor              contribuidor @relation(fields: [fk_contribuidor_nome, fk_contribuidor_data_nasc], references: [nome, data_nasc], map: "fk_contribui_1")
+  serie                     serie        @relation(fields: [fk_serie_nome_intern, fk_serie_ciclo_de_num], references: [nome_intern, ciclo_de_num], onDelete: Cascade, map: "fk_contribui_2")
+
+  @@id([fk_contribuidor_nome, fk_contribuidor_data_nasc, fk_serie_ciclo_de_num, fk_serie_nome_intern])
+}
+
+model contribuidor {
+  genero    String?     @db.Char(1)
+  nome      String      @db.VarChar
+  data_nasc DateTime    @db.Date
+  contribui contribui[]
+
+  @@id([nome, data_nasc])
+}
+
+model edicao {
+  foto_de_capa          String?    @db.VarChar
+  numero                String     @db.VarChar
+  un_monetaria          String?    @db.Char(3)
+  preco                 Float?
+  data_lanc             DateTime   @db.Date
+  fk_serie_nome_intern  String     @db.VarChar
+  fk_serie_ciclo_de_num Int        @db.SmallInt
+  serie                 serie      @relation(fields: [fk_serie_nome_intern, fk_serie_ciclo_de_num], references: [nome_intern, ciclo_de_num], onDelete: Cascade, map: "fk_edicao_2")
+  exemplar              exemplar[]
+  tankobon              tankobon?
+
+  @@id([numero, data_lanc, fk_serie_nome_intern, fk_serie_ciclo_de_num])
+}
+
+model editora {
+  logo        String?   @db.VarChar
+  nome        String    @db.VarChar
+  ano_criacao DateTime  @db.Date
+  publica     publica[]
+
+  @@id([nome, ano_criacao])
+}
+
+model exemplar {
+  data_aquis             DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  estado_conserv         String?   @db.VarChar
+  id                     Int       @id @default(autoincrement())
+  fk_edicao_numero       String?   @db.VarChar
+  fk_edicao_data_lanc    DateTime? @db.Date
+  fk_edicao_nome_intern  String?   @db.VarChar
+  fk_edicao_ciclo_de_num Int?      @db.SmallInt
+  edicao                 edicao?   @relation(fields: [fk_edicao_numero, fk_edicao_data_lanc, fk_edicao_nome_intern, fk_edicao_ciclo_de_num], references: [numero, data_lanc, fk_serie_nome_intern, fk_serie_ciclo_de_num], onDelete: Cascade, map: "fk_exemplar_2")
+  agrega                 agrega[]
+}
+
+model genero {
+  fk_serie_nome_intern  String @db.VarChar
+  fk_serie_ciclo_de_num Int    @db.SmallInt
+  genero                String @db.VarChar
+  serie                 serie  @relation(fields: [fk_serie_nome_intern, fk_serie_ciclo_de_num], references: [nome_intern, ciclo_de_num], onDelete: Cascade, onUpdate: Restrict, map: "fk_genero_2")
+
+  @@id([fk_serie_nome_intern, fk_serie_ciclo_de_num, genero])
+}
+
+model manga {
+  nome_jap              String? @db.VarChar
+  demografia            String? @db.VarChar
+  fk_serie_nome_intern  String  @db.VarChar
+  fk_serie_ciclo_de_num Int     @db.SmallInt
+  serie                 serie   @relation(fields: [fk_serie_nome_intern, fk_serie_ciclo_de_num], references: [nome_intern, ciclo_de_num], onDelete: Cascade, map: "fk_manga_2")
+
+  @@id([fk_serie_ciclo_de_num, fk_serie_nome_intern])
+  @@unique([fk_serie_nome_intern, fk_serie_ciclo_de_num])
+}
+
+model publica {
+  fk_editora_nome        String   @db.VarChar
+  fk_editora_ano_criacao DateTime @db.Date
+  fk_serie_nome_intern   String   @db.VarChar
+  fk_serie_ciclo_de_num  Int      @db.SmallInt
+  editora                editora  @relation(fields: [fk_editora_nome, fk_editora_ano_criacao], references: [nome, ano_criacao], map: "fk_publica_1")
+  serie                  serie    @relation(fields: [fk_serie_nome_intern, fk_serie_ciclo_de_num], references: [nome_intern, ciclo_de_num], onDelete: Cascade, map: "fk_publica_2")
+
+  @@id([fk_editora_nome, fk_editora_ano_criacao, fk_serie_ciclo_de_num, fk_serie_nome_intern])
+}
+
+model serie {
+  estado_pub_atual String?     @db.VarChar
+  nome_intern      String      @db.VarChar
+  ciclo_de_num     Int         @db.SmallInt
+  contribui        contribui[]
+  edicao           edicao[]
+  genero           genero[]
+  manga            manga?
+  publica          publica[]
+
+  @@id([nome_intern, ciclo_de_num])
+}
+
+model tankobon {
+  fk_edicao_numero       String     @db.VarChar
+  fk_edicao_data_lanc    DateTime   @db.Date
+  fk_edicao_nome_intern  String     @db.VarChar
+  fk_edicao_ciclo_de_num Int        @db.SmallInt
+  edicao                 edicao     @relation(fields: [fk_edicao_numero, fk_edicao_data_lanc, fk_edicao_nome_intern, fk_edicao_ciclo_de_num], references: [numero, data_lanc, fk_serie_nome_intern, fk_serie_ciclo_de_num], onDelete: Cascade, map: "fk_tankobon_2")
+  capitulo               capitulo[]
+
+  @@id([fk_edicao_numero, fk_edicao_data_lanc, fk_edicao_nome_intern, fk_edicao_ciclo_de_num])
+}
