@@ -13,7 +13,7 @@ import { telaAddExempColecaoRouter } from "./routes/Tela_Add_Exemp_Colecao.js";
 
 dotenv.config()
 
-const PORT = process.env.PORT || 4444;
+// const PORT = process.env.PORT || 4444;
 
 
 const app = express();
