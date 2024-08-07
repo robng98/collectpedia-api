@@ -15,7 +15,7 @@
   },
   "type": "module",
   "keywords": [],
-  "author": "Roberto Nicacio Guimaraes",
+  "author": "Roberto Nicacio",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.18.0",
